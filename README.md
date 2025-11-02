@@ -1,6 +1,6 @@
 # Global GDP per Capita (2023)
 
-**Author:** Lauren Brannan  
+**Author:** Lulu Brannan  
 **Course:** GHY 4818 – Web Mapping  
 **Date:** October 2025  
 
