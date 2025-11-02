@@ -2,7 +2,7 @@
 
 **Author:** Lauren Brannan  
 **Course:** GHY 4818 – Web Mapping  
-**Semester:** Fall 2025  
+**Date:** October 2025  
 
 ## Purpose
 This project shows estimated GDP per capita (in U.S. dollars) for countries around the world in 2023. The goal was to make an interactive web map that lets users compare economic levels between countries and see overall global patterns.
