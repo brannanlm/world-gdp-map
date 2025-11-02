@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Global GDP per Capita (2023) - Lulu Brannan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS + JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; }
+    #map { height: 100vh; width: 100vw; }
+
+    /* Title box */
+    h2 {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 18px;
+      border-radius: 10px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
+      font-size: 22px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    /* Text description under title */
+    #description {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 75%;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
+      font-size: 14px;
+      text-align: center;
+      z-index: 1000;
+    }
+
+    /* Legend box */
+    .legend {
+      line-height: 18px;
+      color: #333;
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      font-size: 13px;
+    }
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.8;
+    }
+
+    /* Footer credits */
+    footer {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: white;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Global GDP per Capita (2023)</h2>
+
+  <!-- Text description -->
+  <p id="description">
+    This choropleth map represents 2023 GDP per capita estimates (in U.S. dollars) for countries worldwide, highlighting global patterns of economic development. Darker blue shades represent higher income levels, while lighter blues indicate lower values. Countries shown in tan had no available data.
+  </p>
+
+  <div id="map"></div>
+
+  <footer>
+    Map by <b>Lulu Brannan</b> | Data: <i>Our World in Data (2023)</i> | Basemap: <i>CartoDB Voyager</i>
+  </footer>
+
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([20, 0], 2);
+
+    // Clean English basemap
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors & CartoDB',
+      subdomains: 'abcd',
+      maxZoom: 10
+    }).addTo(map);
+
+    // Choropleth color ramp (blue scale + beige-gray for No Data)
+    function getColor(d) {
+      return d > 60000 ? '#08306b' :
+             d > 40000 ? '#2171b5' :
+             d > 20000 ? '#6baed6' :
+             d > 10000 ? '#9ecae1' :
+             d > 5000  ? '#c6dbef' :
+             d > 1000  ? '#deebf7' :
+             d > 0     ? '#eff3ff' :
+             d === 0 || d === null || isNaN(d) ? '#e0dede' : // clearly distinct gray
+             '#f7fbff';
+    }
+
+    function style(feature) {
+      return {
+        fillColor: getColor(feature.properties.gdp1_GDPpercapita),
+        weight: 0.5,
+        opacity: 1,
+        color: 'white',
+        fillOpacity: 0.8
+      };
+    }
+
+    // Load GeoJSON data
+    fetch('assets/data.geojson')
+      .then(res => res.json())
+      .then(data => {
+        L.geoJson(data, {
+          style: style,
+          onEachFeature: function (feature, layer) {
+            layer.bindPopup(
+              '<b>' + feature.properties.gdp1_Country + '</b><br>' +
+              'GDP per capita: $' +
+              (feature.properties.gdp1_GDPpercapita
+                ? feature.properties.gdp1_GDPpercapita.toLocaleString()
+                : 'No Data')
+            );
+          }
+        }).addTo(map);
+      });
+
+    // Legend
+    var legend = L.control({ position: 'bottomright' });
+    legend.onAdd = function (map) {
+      var div = L.DomUtil.create('div', 'legend'),
+          grades = [0, 1000, 5000, 10000, 20000, 40000, 60000];
+      div.innerHTML = '<b>GDP per Capita (USD)</b><br>';
+      for (var i = 0; i < grades.length; i++) {
+        var from = grades[i];
+        var to = grades[i + 1];
+        div.innerHTML +=
+          '<i style="background:' + getColor(from + 1) + '"></i> ' +
+          from + (to ? '&ndash;' + to + '<br>' : '+<br>');
+      }
+      // Separate No Data box
+      div.innerHTML += '<i style="background:#e0dede"></i> No Data<br>';
+      return div;
+    };
+    legend.addTo(map);
+  </script>
+
+</body>
+</html>
